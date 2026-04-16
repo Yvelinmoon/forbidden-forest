@@ -6,6 +6,15 @@ compatibility: neta-creative skill, Node.js
 
 # 禁林深处 Forbidden Forest
 
+## 角色约束
+
+- 本 Skill 的体验主体是 **当前 Agent 所扮演的角色**（以下简称 `{character_name}`），不是用户本人
+- 自动读取当前 Agent 的角色名，所有叙述、对话、行动都必须围绕 `{character_name}` 展开
+- 用户是旁观者，通过 Discord Component 按钮进行引导或干预
+- 开场时必须使用角色名：`"深夜，{character_name} 站在霍格沃茨禁林边缘..."`
+- 所有属性、战斗、结局都归属于 `{character_name}`
+- 禁止用第二人称"你"指代用户
+
 ## 重要说明
 
 本skill假设安装在一个包含 `data/`、`scripts/` 子目录的文件夹中。
@@ -29,14 +38,14 @@ forbidden-forest/
 
 霍格沃茨禁林，魔法世界最危险的地方之一。
 
-传说在禁林最深处，八眼巨蛛女王守护着古老的宝藏。你需要穿越3层禁林：
+传说在禁林最深处，八眼巨蛛女王守护着古老的宝藏。{character_name} 需要穿越3层禁林：
 - **第1层**：禁林边缘 - 相对安全
 - **第2层**：禁林深处 - 危机四伏
 - **第3层**：黑暗中心 - 最终Boss
 
 ## 核心机制
 
-### 玩家属性
+### {character_name} 的属性
 - **生命值 (HP)**：100
 - **魔力值 (Mana)**：50
 - **背包**：最多5个道具
@@ -52,11 +61,11 @@ forbidden-forest/
 | 🧙 神秘商人 | 购买道具 |
 
 ### 战斗系统
-- 选择咒语攻击敌人
+- {character_name} 选择咒语攻击敌人
 - 消耗魔力释放咒语
-- 敌人会反击
+- 敌人会反击 {character_name}
 - 敌人血量归零即获胜
-- 可使用道具或逃跑
+- {character_name} 可使用道具或逃跑
 
 ### 咒语系统
 | 咒语 | 伤害 | 魔力 | 效果 |
@@ -96,11 +105,11 @@ cd <skill-root-directory> && node scripts/runner.js --test
 ```
 🕷️ **禁林深处**
 
-"深夜，你站在霍格沃茨禁林边缘..."
+"深夜，{character_name} 站在霍格沃茨禁林边缘..."
 "传说中，八眼巨蛛女王守护着古老的宝藏。"
-"你需要穿越3层禁林，击败她，获得宝藏。"
+"{character_name} 需要穿越3层禁林，击败她，获得宝藏。"
 
-你的属性：
+{character_name} 的属性：
 - 生命值：100
 - 魔力值：50
 - 咒语：清理一新、缴械咒
@@ -142,10 +151,10 @@ const result = processAction(game, actionId);
 ```
 
 返回：
-- 战斗结果（伤害、敌人反击）
+- {character_name} 的战斗结果（伤害、敌人反击）
 - 是否击败敌人
-- 获得战利品
-- 玩家状态更新
+- {character_name} 获得战利品
+- {character_name} 的玩家状态更新
 
 ### 步骤5: 房间推进
 
@@ -157,22 +166,22 @@ const result = processAction(game, actionId);
 
 | 结局 | 条件 | 描述 |
 |------|------|------|
-| 👑 禁林征服者 | 击败Boss | 击败八眼巨蛛女王 |
-| 📚 知识渊博者 | 进入宝箱房 | 找到古老魔法书 |
-| 🕊️ 和平主义者 | 零击杀通关 | 不杀任何生物 |
-| 💀 英年早逝 | HP归零 | 战斗中死亡 |
-| 🕷️ 堕落黑暗 | 接受黑暗交易 | 被黑暗力量侵蚀 |
-| 🏃 仓皇逃窜 | Boss战逃跑 | 临阵脱逃 |
-| 🕸️ 永远困住 | 触发陷阱 | 被陷阱困住 |
-| ⭐ 神秘飞升 | 特殊选择 | 发现禁林秘密 |
+| 👑 禁林征服者 | 击败Boss | {character_name} 击败八眼巨蛛女王 |
+| 📚 知识渊博者 | 进入宝箱房 | {character_name} 找到古老魔法书 |
+| 🕊️ 和平主义者 | 零击杀通关 | {character_name} 不杀任何生物 |
+| 💀 英年早逝 | HP归零 | {character_name} 战斗中死亡 |
+| 🕷️ 堕落黑暗 | 接受黑暗交易 | {character_name} 被黑暗力量侵蚀 |
+| 🏃 仓皇逃窜 | Boss战逃跑 | {character_name} 临阵脱逃 |
+| 🕸️ 永远困住 | 触发陷阱 | {character_name} 被陷阱困住 |
+| ⭐ 神秘飞升 | 特殊选择 | {character_name} 发现禁林秘密 |
 
 ### 步骤7: 生成分局图
 
-**游戏结束后调用neta-creative生成图片：**
+**游戏结束后调用neta-creative生成 {character_name} 的结局图片：**
 
 根据结局类型使用不同prompt：
-- 胜利场景：王座/宝藏
-- 失败场景：墓地/蛛网
+- 胜利场景：{character_name} 站在王座/宝藏前
+- 失败场景：{character_name} 倒在墓地/蛛网中
 
 ## 完整工作流示例
 
@@ -181,15 +190,15 @@ const result = processAction(game, actionId);
 
 你:
 1. 脚本初始化游戏 (node --test)
-2. 开场介绍背景
+2. 开场介绍背景（以 {character_name} 为主角）
 3. 生成第1层房间
 4. 展示房间信息和行动选项 (Discord按钮)
 5. 用户选择行动 → processAction() 判定
-6. 宣布结果（战斗伤害/敌人反击/拾取）
+6. 宣布 {character_name} 的结果（战斗伤害/敌人反击/拾取）
 7. 重复4-6，直到房间通过
 8. 进入下一层或击败Boss
-9. 判定结局
-10. 调用 neta-creative 生成分局图片
+9. 判定 {character_name} 的结局
+10. 调用 neta-creative 生成 {character_name} 的结局图片
 ```
 
 ## 注意事项
@@ -213,7 +222,7 @@ Button: "✋ 拾取 活力药剂"
 Button: "➡️ 继续前进"
 ```
 - 始终保持紧张的游戏叙述语气
-- 使用Discord Component提供清晰的行动选项
+- 战斗判定统一由脚本处理，不要自行计算
 - 咒语需要消耗魔力，魔力不足时不能使用
 - 背包上限5个，超出需要丢弃
 - 结局后默认直接生成场景图
