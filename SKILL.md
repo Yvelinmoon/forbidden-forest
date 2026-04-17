@@ -222,11 +222,20 @@ const result = processAction(game, actionId);
 
 ### 步骤7: 生成分局图
 
-**游戏结束后调用neta-creative生成 {character_name} 的结局图片：**
+**游戏结束后，必须调用脚本生成结局图片prompt：**
 
-根据结局类型使用不同prompt：
-- 胜利场景：{character_name} 站在王座/宝藏前
-- 失败场景：{character_name} 倒在墓地/蛛网中
+```bash
+cd <skill-root-directory> && node scripts/generate_scene.js "{character_name}" <ending_id>
+```
+
+`<ending_id>` 可选值：`victory`, `victory_seeker`, `victory_pacifist`, `defeat_death`, `defeat_turned`, `defeat_escape`, `defeat_trapped`, `mystery_ascended`
+
+然后**直接调用 neta-creative**，使用脚本输出的 `prompt` 字段。
+
+**图片要求：**
+- 必须包含 **对话气泡（speech bubble）**：{character_name} 头顶漂浮台词气泡，显示对应结局的经典台词
+- 胜利场景：{character_name} 站在宝藏/王座前，沐浴月光
+- 失败场景：{character_name} 倒在墓地/蛛网中，笼罩黑暗
 
 ## 完整工作流示例
 
@@ -243,7 +252,8 @@ const result = processAction(game, actionId);
 7. 重复4-6，直到房间通过
 8. 进入下一层或击败Boss
 9. 判定 {character_name} 的结局
-10. 调用 neta-creative 生成 {character_name} 的结局图片
+10. Bash: cd <skill-dir> && node scripts/generate_scene.js "{character_name}" <ending_id> （生成prompt）
+11. 调用 neta-creative 生成 {character_name} 的结局图片
 ```
 
 ## 注意事项
