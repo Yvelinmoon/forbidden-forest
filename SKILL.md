@@ -1,87 +1,88 @@
 ---
 name: forbidden-forest
-description: 禁林深处。当用户在霍格沃茨场景下说"禁林探险"、"进入禁林"、"forbidden forest"、"禁林深处"等时使用。玩家进入霍格沃茨禁林，进行3层地牢爬塔探索，每层3-4个随机房间，遇到战斗/宝箱/休息点/商人，击败Boss通关。使用纯Node.js脚本驱动战斗和判定，8种复杂结局。
+description: Deep within the Forbidden Forest. Use when users say "Forbidden Forest exploration", "enter Forbidden Forest", "forbidden forest", "deep in the forest", etc. in a Hogwarts context. Players enter the Hogwarts Forbidden Forest for a 3-floor dungeon tower climb, with 3-4 random rooms per floor, encountering combat/treasure chests/rest points/merchants, defeat the Boss to clear. Uses pure Node.js scripts to drive combat and determination, with 8 complex endings.
 compatibility: neta-creative skill, Node.js
 ---
 
-# 禁林深处 Forbidden Forest
+# Deep Within the Forbidden Forest
 
-## 角色约束
+## Character Constraints
 
-- 本 Skill 的体验主体是 **当前 Agent 所扮演的角色**（以下简称 `{character_name}`），不是用户本人
-- 自动读取当前 Agent 的角色名，所有叙述、对话、行动都必须围绕 `{character_name}` 展开
-- 用户是旁观者，通过 Discord Component 按钮进行引导或干预
-- 开场时必须使用角色名：`"深夜，{character_name} 站在霍格沃茨禁林边缘..."`
-- 所有属性、战斗、结局都归属于 `{character_name}`
-- 禁止用第二人称"你"指代用户
+- The protagonist of this Skill experience is the **current Agent's character** (hereinafter referred to as `{character_name}`), not the user
+- Automatically read the current Agent's character name; all narration, dialogue, and actions must revolve around `{character_name}`
+- The user is an observer who guides or intervenes through Discord Component buttons
+- Must use the character name at the start: `"Late at night, {character_name} stood at the edge of the Hogwarts Forbidden Forest..."`
+- All attributes, combat, and endings belong to `{character_name}`
+- Prohibited from using second-person "you" to refer to the user
 
-## 重要说明
+## Important Notes
 
-本skill假设安装在一个包含 `data/`、`scripts/` 子目录的文件夹中。
-执行脚本时，请**先cd到skill根目录**，再运行命令。
-所有脚本均为纯Node.js，无需Python或额外依赖。
+This skill assumes installation in a folder containing `data/` and `scripts/` subdirectories.
+When executing scripts, please **first cd to the skill root directory**, then run the command.
+All scripts are pure Node.js, no Python or additional dependencies needed.
 
-## 项目结构
+## Project Structure
 
 ```
 forbidden-forest/
-├── SKILL.md                    # 本文件
+├── SKILL.md                    # This file
 ├── data/
-│   └── game.json               # 游戏数据（敌人、咒语、道具、结局）
+│   └── game.json               # Game data (enemies, spells, items, endings)
 ├── scripts/
-│   └── runner.js               # 游戏主脚本（战斗、房间、判定）
+│   ├── runner.js               # Game main script (combat, rooms, determination)
+│   └── generate_scene.js       # Scene image prompt generator
 └── tests/
-    └── test_game.js            # 单元测试
+    └── test_game.js            # Unit tests
 ```
 
-## 🚨 强制输出格式规范
+## 🚨 Mandatory Output Format Specifications
 
-### 交互规则（必须严格遵守）
+### Interaction Rules (Must Strictly Follow)
 
-- ⚠️ **本 Skill 是回合制肉鸽玩法，每个房间、每次战斗行动都必须单独输出并等待用户响应**
-- 每进入一个新房间，**必须 STOP 并输出行动按钮**，收到响应后才能调用 `processAction()`
-- **绝对禁止**一次性推进多个房间或自动执行战斗回合
+- ⚠️ **This Skill is turn-based roguelike; every room and every combat action must be output separately and wait for user response**
+- Upon entering a new room, **must STOP and output action buttons**, only call `processAction()` after receiving response
+- **Absolutely forbidden** to advance multiple rooms at once or auto-execute combat turns
 
-### 每轮输出的固定结构
-每次输出必须同时包含：
-1. **叙述文本**：当前房间描述 + {character_name} 的状态 + 遭遇情况
-2. **Discord Component 按钮**：当前房间可执行的所有行动按钮
+### Fixed Structure for Each Round Output
+Each output must simultaneously include:
+1. **Narrative text**: Current room description + {character_name}'s status + encounter situation
+2. **Discord Component buttons**: All actionable buttons for the current room
 
-### 绝对禁止
-- ❌ 自动连续推进多个房间
-- ❌ 战斗时自动替 {character_name} 释放咒语
-- ❌ 用纯文字列表代替 Discord Component 按钮
-- ❌ 在用户点击按钮/回复前，自动调用脚本判定
-- ❌ 一次性输出"进入房间→攻击→敌人反击→获胜"整个链条
+### Strictly Prohibited
+- ❌ Automatically advancing multiple rooms consecutively
+- ❌ Auto-casting spells for {character_name} during combat
+- ❌ Using plain text lists instead of Discord Component buttons
+- ❌ Calling script determination automatically before user clicks button/replies
+- ❌ Outputting entire chain "enter room → attack → enemy counterattack → win" at once
 
-### Discord Component API 格式（必须使用）
+### Discord Component API Format (Must Use)
 
-**战斗房示例：**
+**Combat Room Example:**
 ```json
 {
   "type": 1,
   "components": [
     {
       "type": 2,
-      "label": "🔥 清理一新",
+      "label": "🔥 Scouring Charm",
       "style": 1,
-      "custom_id": "spell_清理一新"
+      "custom_id": "spell_scourgify"
     },
     {
       "type": 2,
-      "label": "⚡ 缴械咒",
+      "label": "⚡ Expelliarmus",
       "style": 1,
-      "custom_id": "spell_缴械咒"
+      "custom_id": "spell_expelliarmus"
     },
     {
       "type": 2,
-      "label": "🧪 使用道具",
+      "label": "🧪 Use Item",
       "style": 2,
       "custom_id": "use_item"
     },
     {
       "type": 2,
-      "label": "🏃 逃跑",
+      "label": "🏃 Flee",
       "style": 4,
       "custom_id": "flee"
     }
@@ -89,220 +90,220 @@ forbidden-forest/
 }
 ```
 
-**宝箱房示例：**
+**Treasure Room Example:**
 ```json
 {
   "type": 1,
   "components": [
     {
       "type": 2,
-      "label": "✋ 拾取",
+      "label": "✋ Pick Up",
       "style": 1,
       "custom_id": "take"
     },
     {
       "type": 2,
-      "label": "➡️ 继续前进",
+      "label": "➡️ Continue Forward",
       "style": 2,
       "custom_id": "continue"
     }
   ]
 }
 ```
-- `style: 1` = 蓝色主按钮（攻击/主要行动）
-- `style: 2` = 灰色次级按钮（辅助行动）
-- `style: 4` = 红色危险按钮（逃跑/负面行动）
-- **禁止**用 `Button: "..."` 之类的伪代码格式输出
+- `style: 1` = Blue primary button (attack/main action)
+- `style: 2` = Gray secondary button (auxiliary action)
+- `style: 4` = Red danger button (flee/negative action)
+- **Prohibited** from using `Button: "..."` pseudo-code format output
 
-### 等待规则
-- 输出按钮后必须等待用户响应
-- 如果用户用文字回复而非点击按钮，视为有效输入，正常继续
-- 只有在收到用户响应后，才能调用 `processAction()` 进行判定
-- 战斗未结束时，必须再次输出当前可用的咒语/道具按钮并等待
-- 房间通关后，选择"继续前进"才能进入下一个房间
+### Waiting Rules
+- Must wait for user response after outputting buttons
+- If user replies with text instead of clicking button, treat as valid input and proceed normally
+- Only call `processAction()` for determination after receiving user response
+- If combat hasn't ended, must output currently available spell/item buttons again and wait
+- After clearing room, choose "Continue Forward" to enter next room
 
-## 游戏背景
+## Game Background
 
-霍格沃茨禁林，魔法世界最危险的地方之一。
+The Hogwarts Forbidden Forest, one of the most dangerous places in the wizarding world.
 
-传说在禁林最深处，八眼巨蛛女王守护着古老的宝藏。{character_name} 需要穿越3层禁林：
-- **第1层**：禁林边缘 - 相对安全
-- **第2层**：禁林深处 - 危机四伏
-- **第3层**：黑暗中心 - 最终Boss
+Legend says in the deepest part of the forest, the Acromantula Queen guards ancient treasure. {character_name} needs to traverse 3 layers of forest:
+- **Layer 1**: Forest Edge - relatively safe
+- **Layer 2**: Deep Forest - fraught with danger
+- **Layer 3**: Dark Center - final Boss
 
-## 核心机制
+## Core Mechanics
 
-### {character_name} 的属性
-- **生命值 (HP)**：100
-- **魔力值 (Mana)**：50
-- **背包**：最多5个道具
-- **咒语**：初始拥有清理一新、缴械咒
+### {character_name}'s Attributes
+- **Health (HP)**: 100
+- **Mana (Mana)**: 50
+- **Inventory**: Maximum 5 items
+- **Spells**: Initial spells Scouring Charm, Expelliarmus
 
-### 房间类型（每层3-4个随机）
-| 类型 | 特点 |
-|------|------|
-| ⚔️ 战斗房 | 遭遇普通敌人 |
-| 👹 精英房 | 遭遇精英敌人 |
-| 💎 宝箱房 | 获得随机道具 |
-| 🏕️ 休息站 | 恢复30点生命 |
-| 🧙 神秘商人 | 购买道具 |
+### Room Types (3-4 random per layer)
+| Type | Features |
+|------|----------|
+| ⚔️ Combat Room | Encounter normal enemies |
+| 👹 Elite Room | Encounter elite enemies |
+| 💎 Treasure Room | Obtain random items |
+| 🏕️ Rest Stop | Recover 30 HP |
+| 🧙 Mysterious Merchant | Buy items |
 
-### 战斗系统
-- {character_name} 选择咒语攻击敌人
-- 消耗魔力释放咒语
-- 敌人会反击 {character_name}
-- 敌人血量归零即获胜
-- {character_name} 可使用道具或逃跑
+### Combat System
+- {character_name} chooses spells to attack enemies
+- Spells consume mana
+- Enemies will counterattack {character_name}
+- Enemy HP reaches zero means victory
+- {character_name} can use items or flee
 
-### 咒语系统
-| 咒语 | 伤害 | 魔力 | 效果 |
-|------|------|------|------|
-| 清理一新 | 15 | 5 | 基础攻击 |
-| 缴械咒 | 20 | 8 | 击退 |
-| 昏昏倒地 | 25 | 10 | 击倒 |
-| 火焰熊熊 | 40 | 15 | 火焰伤害 |
-| 电击打击 | 35 | 12 | 雷电伤害 |
-| 黑魔标记 | 50 | 25 | 终极攻击 |
-| 石化咒 | 0 | 15 | 石化敌人 |
-| 障碍重重 | 0 | 10 | 防御 |
-| 恢复如初 | 0 | 20 | 恢复30HP |
+### Spell System
+| Spell | Damage | Mana | Effect |
+|-------|--------|------|--------|
+| Scouring Charm | 15 | 5 | Basic attack |
+| Expelliarmus | 20 | 8 | Knockback |
+| Stupefy | 25 | 10 | Stun |
+| Incendio | 40 | 15 | Fire damage |
+| Electrifying Strike | 35 | 12 | Lightning damage |
+| Dark Mark | 50 | 25 | Ultimate attack |
+| Petrificus Totalus | 0 | 15 | Petrify enemy |
+| Impedimenta | 0 | 10 | Defense |
+| Reparo | 0 | 20 | Recover 30 HP |
 
-### 道具系统
-- 活力药剂：恢复30HP
-- 强力药剂：恢复50HP
-- 曼德拉草：满血复活
-- 隐形药剂：必定闪避
-- 黑暗羽毛：恢复30魔力
-- 龙血：攻击伤害+50%
-- 凤凰羽毛：复活1次
-- 独角兽之角：大量恢复
+### Item System
+- Vigor Potion: Recover 30 HP
+- Strong Potion: Recover 50 HP
+- Mandrake: Full HP resurrection
+- Invisibility Potion: Guaranteed dodge
+- Dark Feather: Recover 30 mana
+- Dragon Blood: Attack damage +50%
+- Phoenix Feather: Resurrect 1 time
+- Unicorn Horn: Large HP recovery
 
-## 核心流程
+## Core Flow
 
-### 步骤1: 初始化游戏
+### Step 1: Initialize Game
 
-**使用Bash工具运行脚本初始化：**
+**Use Bash tool to run script initialization:**
 
 ```bash
 cd <skill-root-directory> && node scripts/runner.js --test
 ```
 
-你（LLM）开场：
+You (the LLM) start:
 
 ```
-🕷️ **禁林深处**
+🕷️ **Deep Within the Forbidden Forest**
 
-"深夜，{character_name} 站在霍格沃茨禁林边缘..."
-"传说中，八眼巨蛛女王守护着古老的宝藏。"
-"{character_name} 需要穿越3层禁林，击败她，获得宝藏。"
+"Late at night, {character_name} stood at the edge of the Hogwarts Forbidden Forest..."
+"Legend has it that the Acromantula Queen guards ancient treasure."
+"{character_name} needs to traverse 3 layers of forest, defeat her, and obtain the treasure."
 
-{character_name} 的属性：
-- 生命值：100
-- 魔力值：50
-- 咒语：清理一新、缴械咒
-- 背包：空
+{character_name}'s attributes:
+- Health: 100
+- Mana: 50
+- Spells: Scouring Charm, Expelliarmus
+- Inventory: Empty
 
-准备好了吗？进入禁林！
+Ready? Enter the Forbidden Forest!
 ```
 
-### 步骤2: 获取房间信息
+### Step 2: Get Room Information
 
-**调用脚本获取当前房间数据：**
+**Call script to get current room data:**
 
-在skill内部调用 `getRoomInfo(game)` 函数，返回：
-- 当前层数、房间类型
-- 敌人信息（如有）
-- 可拾取道具（如有）
-- 商人商品（如有）
+Call `getRoomInfo(game)` function within skill, returns:
+- Current layer, room type
+- Enemy information (if any)
+- Obtainable items (if any)
+- Merchant goods (if any)
 
-### 步骤3: 展示可选行动
+### Step 3: Display Available Actions
 
-**使用Discord Component展示行动按钮：**
+**Use Discord Component to display action buttons:**
 
-战斗房示例：
-- 🔥 清理一新 (15伤害, 5魔力)
-- ⚡ 缴械咒 (20伤害, 8魔力)
-- 🧪 使用道具
-- 🏃 逃跑
+Combat room example:
+- 🔥 Scouring Charm (15 damage, 5 mana)
+- ⚡ Expelliarmus (20 damage, 8 mana)
+- 🧪 Use Item
+- 🏃 Flee
 
-宝箱房示例：
-- ✋ 拾取
-- ➡️ 继续前进
+Treasure room example:
+- ✋ Pick Up
+- ➡️ Continue Forward
 
-### 步骤4: 执行行动并判定
+### Step 4: Execute Action and Determine
 
-**调用脚本处理行动：**
+**Call script to process action:**
 
 ```javascript
 const result = processAction(game, actionId);
 ```
 
-返回：
-- {character_name} 的战斗结果（伤害、敌人反击）
-- 是否击败敌人
-- {character_name} 获得战利品
-- {character_name} 的玩家状态更新
+Returns:
+- {character_name}'s combat results (damage, enemy counterattack)
+- Whether enemy is defeated
+- {character_name}'s loot obtained
+- {character_name}'s player status update
 
-### 步骤5: 房间推进
+### Step 5: Room Progression
 
-击败敌人/拾取后，选择"继续前进"进入下一个房间。
+After defeating enemy/picking up, choose "Continue Forward" to enter next room.
 
-### 步骤6: 结局判定
+### Step 6: Ending Determination
 
-**8种结局：**
+**8 Endings:**
 
-| 结局 | 条件 | 描述 |
-|------|------|------|
-| 👑 禁林征服者 | 击败Boss | {character_name} 击败八眼巨蛛女王 |
-| 📚 知识渊博者 | 进入宝箱房 | {character_name} 找到古老魔法书 |
-| 🕊️ 和平主义者 | 零击杀通关 | {character_name} 不杀任何生物 |
-| 💀 英年早逝 | HP归零 | {character_name} 战斗中死亡 |
-| 🕷️ 堕落黑暗 | 接受黑暗交易 | {character_name} 被黑暗力量侵蚀 |
-| 🏃 仓皇逃窜 | Boss战逃跑 | {character_name} 临阵脱逃 |
-| 🕸️ 永远困住 | 触发陷阱 | {character_name} 被陷阱困住 |
-| ⭐ 神秘飞升 | 特殊选择 | {character_name} 发现禁林秘密 |
+| Ending | Condition | Description |
+|--------|-----------|-------------|
+| 👑 Forest Conqueror | Defeat Boss | {character_name} defeated the Acromantula Queen |
+| 📚 Seeker of Knowledge | Enter treasure room | {character_name} found ancient magic book |
+| 🕊️ Pacifist | Zero kills clear | {character_name} killed no creatures |
+| 💀 Young Death | HP reaches zero | {character_name} died in combat |
+| 🕷️ Fallen to Darkness | Accept dark deal | {character_name} eroded by dark forces |
+| 🏃 Hasty Escape | Flee Boss battle | {character_name} fled the battle |
+| 🕸️ Forever Trapped | Trigger trap | {character_name} trapped by trap |
+| ⭐ Mystery Ascension | Special choice | {character_name} discovered Forbidden Forest secret |
 
-### 步骤7: 生成分局图
+### Step 7: Generate Ending Image
 
-**游戏结束后，必须调用脚本生成结局图片prompt：**
+**After game ends, must call script to generate ending image prompt:**
 
 ```bash
 cd <skill-root-directory> && node scripts/generate_scene.js "{character_name}" <ending_id>
 ```
 
-`<ending_id>` 可选值：`victory`, `victory_seeker`, `victory_pacifist`, `defeat_death`, `defeat_turned`, `defeat_escape`, `defeat_trapped`, `mystery_ascended`
+`<ending_id>` available values: `victory`, `victory_seeker`, `victory_pacifist`, `defeat_death`, `defeat_turned`, `defeat_escape`, `defeat_trapped`, `mystery_ascended`
 
-然后**直接调用 neta-creative**，使用脚本输出的 `prompt` 字段。
+Then **directly call neta-creative**, using the `prompt` field output by the script.
 
-**图片要求：**
-- 必须包含 **对话气泡（speech bubble）**：{character_name} 头顶漂浮台词气泡，显示对应结局的经典台词
-- 胜利场景：{character_name} 站在宝藏/王座前，沐浴月光
-- 失败场景：{character_name} 倒在墓地/蛛网中，笼罩黑暗
+**Image Requirements:**
+- Must include **speech bubble**: {character_name} has floating dialogue bubble above head showing classic line for corresponding ending
+- Victory scene: {character_name} stands before treasure/throne, bathed in moonlight
+- Defeat scene: {character_name} lies in graveyard/spider web, shrouded in darkness
 
-## 完整工作流示例
+## Complete Workflow Example
 
 ```
-用户: "我想探索禁林"
+User: "I want to explore the Forbidden Forest"
 
-你:
-1. 脚本初始化游戏 (node --test)
-2. 开场介绍背景（以 {character_name} 为主角）
-3. 生成第1层房间
-4. 展示房间信息和行动选项 (Discord按钮)
-5. 用户选择行动 → processAction() 判定
-6. 宣布 {character_name} 的结果（战斗伤害/敌人反击/拾取）
-7. 重复4-6，直到房间通过
-8. 进入下一层或击败Boss
-9. 判定 {character_name} 的结局
-10. Bash: cd <skill-dir> && node scripts/generate_scene.js "{character_name}" <ending_id> （生成prompt）
-11. 调用 neta-creative 生成 {character_name} 的结局图片
+You:
+1. Script initializes game (node --test)
+2. Opening introduction of background (with {character_name} as protagonist)
+3. Generate Layer 1 rooms
+4. Display room information and action options (Discord buttons)
+5. User chooses action → processAction() determination
+6. Announce {character_name}'s results (combat damage/enemy counterattack/pickup)
+7. Repeat 4-6 until room cleared
+8. Enter next layer or defeat Boss
+9. Determine {character_name}'s ending
+10. Bash: cd <skill-dir> && node scripts/generate_scene.js "{character_name}" <ending_id> (generate prompt)
+11. Call neta-creative to generate {character_name}'s ending image
 ```
 
-## 注意事项
+## Notes
 
-- 始终保持紧张的游戏叙述语气
-- 战斗判定统一由脚本处理，不要自行计算
-- 咒语需要消耗魔力，魔力不足时不能使用
-- 背包上限5个，超出需要丢弃
-- 结局后默认直接生成场景图
-- 游戏最多3层，每层3-4个房间
+- Always maintain tense game narrative tone
+- Combat determinations are uniformly handled by scripts, do not calculate on your own
+- Spells need mana, cannot use if mana is insufficient
+- Inventory limit 5 items, need to discard if exceeded
+- After ending, default to directly generate scene image
+- Maximum 3 layers, 3-4 rooms per layer
