@@ -54,23 +54,65 @@ forbidden-forest/
 - ❌ 在用户点击按钮/回复前，自动调用脚本判定
 - ❌ 一次性输出"进入房间→攻击→敌人反击→获胜"整个链条
 
-### 按钮格式速查
+### Discord Component API 格式（必须使用）
 
 **战斗房示例：**
-```
-[遭遇敌人：巨型蜘蛛 HP:40 伤害:10]
-Button: "🔥 清理一新 (15伤害, 5魔力)"
-Button: "⚡ 缴械咒 (20伤害, 8魔力)"
-Button: "🧪 使用道具"
-Button: "🏃 逃跑"
+```json
+{
+  "type": 1,
+  "components": [
+    {
+      "type": 2,
+      "label": "🔥 清理一新",
+      "style": 1,
+      "custom_id": "spell_清理一新"
+    },
+    {
+      "type": 2,
+      "label": "⚡ 缴械咒",
+      "style": 1,
+      "custom_id": "spell_缴械咒"
+    },
+    {
+      "type": 2,
+      "label": "🧪 使用道具",
+      "style": 2,
+      "custom_id": "use_item"
+    },
+    {
+      "type": 2,
+      "label": "🏃 逃跑",
+      "style": 4,
+      "custom_id": "flee"
+    }
+  ]
+}
 ```
 
 **宝箱房示例：**
+```json
+{
+  "type": 1,
+  "components": [
+    {
+      "type": 2,
+      "label": "✋ 拾取",
+      "style": 1,
+      "custom_id": "take"
+    },
+    {
+      "type": 2,
+      "label": "➡️ 继续前进",
+      "style": 2,
+      "custom_id": "continue"
+    }
+  ]
+}
 ```
-[发现宝箱：活力药剂]
-Button: "✋ 拾取 活力药剂"
-Button: "➡️ 继续前进"
-```
+- `style: 1` = 蓝色主按钮（攻击/主要行动）
+- `style: 2` = 灰色次级按钮（辅助行动）
+- `style: 4` = 红色危险按钮（逃跑/负面行动）
+- **禁止**用 `Button: "..."` 之类的伪代码格式输出
 
 ### 等待规则
 - 输出按钮后必须等待用户响应
